@@ -122,13 +122,13 @@ const Home = ({getAllPost, getAllUser, posts, users, navigation}) => {
   );
 };
 
-function mapStateToProps(state) {
+const mapStateToProps = (state) => {
   return {
     posts: state.postReducer.posts,
     users: state.postReducer.users,
   };
 }
-function mapDispatchToProps(dispatch) {
+const mapDispatchToProps = (dispatch) => {
   return {
     getAllPost: () => {
       return dispatch(getAllPost());

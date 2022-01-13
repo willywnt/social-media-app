@@ -11,13 +11,7 @@ const DetailPost = ({route, navigation}) => {
 
   useEffect(() => {
     let apiUrl = `https://jsonplaceholder.typicode.com/comments?postId=${post.id}`;
-    axios({
-      url: apiUrl,
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-    })
+    axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
           setPostComments(response.data);

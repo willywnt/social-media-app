@@ -24,8 +24,7 @@ const DetailUser = ({route}) => {
   const [albums, setAlbums] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [imageSource, setImageSource] = useState(null);
-  const [imageTitle, setImageTitle] = useState(null);
+  const [selectedPhoto, setSelectedPhoto] = useState({});
   const [loading, setLoading] = useState(true);
 
   const slideInfo = [
@@ -35,13 +34,7 @@ const DetailUser = ({route}) => {
 
   const fetchPhotos = ids => {
     let apiUrl = `https://jsonplaceholder.typicode.com/photos?albumId=${ids}`;
-    axios({
-      url: apiUrl,
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-    })
+    axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
           setPhotos(response.data);
@@ -57,13 +50,7 @@ const DetailUser = ({route}) => {
 
   useEffect(() => {
     let apiUrl = `https://jsonplaceholder.typicode.com/albums?userId=${currentUser.id}`;
-    axios({
-      url: apiUrl,
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-    })
+    axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
           setAlbums(response.data);
@@ -166,8 +153,7 @@ const DetailUser = ({route}) => {
         style={{borderWidth: 1, borderColor: COLORS.white}}
         onPress={() => {
           setModalVisible(!modalVisible);
-          setImageSource(item.url);
-          setImageTitle(item.title);
+          setSelectedPhoto(item);
         }}>
         <Image
           style={styles.imageThumbnail}
@@ -228,8 +214,7 @@ const DetailUser = ({route}) => {
         visible={modalVisible}
         onRequestClose={() => {
           setModalVisible(!modalVisible);
-          setImageSource(null);
-          setImageTitle(null);
+          setSelectedPhoto({});
         }}>
         <View style={styles.centeredView}>
           <Pressable
@@ -243,8 +228,7 @@ const DetailUser = ({route}) => {
             }}
             onPress={() => {
               setModalVisible(!modalVisible);
-              setImageSource(null);
-              setImageTitle(null);
+              setSelectedPhoto({});
             }}>
             <MaterialCommunityIcons
               name="close-circle"
@@ -262,9 +246,9 @@ const DetailUser = ({route}) => {
             captureEvent={true}
             doubleTapZoomToCenter={true}
             style={styles.zoomableView}>
-            <Image style={styles.imageLarge} source={{uri: imageSource}} />
+            <Image style={styles.imageLarge} source={{uri: selectedPhoto.url}} />
           </ReactNativeZoomableView>
-          <Text style={styles.imageTitle}>{imageTitle}</Text>
+          <Text style={styles.imageTitle}>{selectedPhoto.title}</Text>
         </View>
       </Modal>
     );
