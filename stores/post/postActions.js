@@ -10,11 +10,11 @@ export const getAllUserBegin = () => ({
 });
 export const getAllUserSuccess = users => ({
   type: GET_ALL_USER_SUCCESS,
-  payload: {users},
+  payload: { users },
 });
 export const getAllUserFailure = error => ({
   type: GET_ALL_USER_FAILURE,
-  payload: {error},
+  payload: { error },
 });
 
 export function getAllUser() {
@@ -46,14 +46,15 @@ export const getAllPostBegin = () => ({
 });
 export const getAllPostSuccess = posts => ({
   type: GET_ALL_POST_SUCCESS,
-  payload: {posts},
+  payload: { posts },
 });
 export const getAllPostFailure = error => ({
   type: GET_ALL_POST_FAILURE,
-  payload: {error},
+  payload: { error },
 });
 
-export function getAllPost() {
+
+export function getAllPost(comments) {
   return dispatch => {
     dispatch(getAllPostBegin());
 
@@ -61,13 +62,23 @@ export function getAllPost() {
     return axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
-          dispatch(getAllPostSuccess(response.data));
+          return response.data;
         } else {
           dispatch(getAllPostFailure(response.data));
         }
       })
+      .then(posts => {
+        let postsWithComments = Array.from(Object.keys(posts).fill(0));
+        posts.forEach((post, index) => {
+          const postComments = comments.filter(comment => comment.postId == post.id)
+          postsWithComments[index] = { ...post, comments: postComments }
+        }
+        )
+        dispatch(getAllPostSuccess(postsWithComments));
+      })
       .catch(error => {
         dispatch(getAllPostFailure(error));
       });
+
   };
 }

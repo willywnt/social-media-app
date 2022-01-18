@@ -1,13 +1,13 @@
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {NavigationContainer} from '@react-navigation/native';
-import {Home, DetailPost, DetailUser} from './screens';
-import {createStore, applyMiddleware} from 'redux';
-import {Provider} from 'react-redux';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { ListPost, DetailPost, DetailUser } from './screens';
+import { createStore, applyMiddleware } from 'redux';
+import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import rootReducer from './stores/rootReducer';
 
-import Tabs from './navigation/tabs';
+// import Tabs from './navigation/tabs';
 
 const Stack = createNativeStackNavigator();
 const store = createStore(rootReducer, applyMiddleware(thunk));
@@ -16,16 +16,16 @@ const App = () => {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName={'Home'}>
+        <Stack.Navigator initialRouteName={'ListPost'}>
           {/* <Stack.Screen
             name="MainLayout"
             component={Tabs}
             options={{headerShown: false}}
           /> */}
           <Stack.Screen
-            name="Home"
-            component={Home}
-            options={{headerShown: false}}
+            name="ListPost"
+            component={ListPost}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="DetailPost"
@@ -37,7 +37,7 @@ const App = () => {
           <Stack.Screen
             name="DetailUser"
             component={DetailUser}
-            options={({route}) => ({
+            options={({ route }) => ({
               title: route.params.currentUser.username,
             })}
           />

@@ -1,6 +1,8 @@
-// Dashboard
-import Home from './Dashboard/Home';
-import DetailUser from './Dashboard/DetailUser';
-import DetailPost from './Dashboard/DetailPost';
+// User
+import DetailUser from './User/DetailUser';
 
-export {Home, DetailUser, DetailPost};
+// Post
+import ListPost from './Post/ListPost';
+import DetailPost from './Post/DetailPost';
+
+export {ListPost, DetailUser, DetailPost};
