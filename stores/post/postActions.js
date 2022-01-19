@@ -56,7 +56,7 @@ export function getAllPost(comments, page, currentPosts) {
   return dispatch => {
     dispatch(getAllPostBegin());
 
-    let apiUrl = `https://jsonplaceholder.typicode.com/posts?_limit=10}&_page=${page}`;
+    let apiUrl = `https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${page}`;
     return axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {

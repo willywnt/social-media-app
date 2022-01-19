@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { ListPost, DetailPost, DetailUser } from './screens';
+import { ListPost, DetailPost, DetailUser, DetailPhoto } from './screens';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
@@ -41,9 +41,14 @@ const App = () => {
               title: route.params.currentUser.username,
             })}
           />
+          <Stack.Screen
+            name="DetailPhoto"
+            component={DetailPhoto}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
-    </Provider>
+    </Provider >
   );
 };
 

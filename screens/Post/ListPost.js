@@ -11,7 +11,7 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, loading, navigation })
   const [comments, setComments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasScrolled, setHasScrolled] = useState(false);
-  
+
   useEffect(() => {
     axios
       .get(`https://jsonplaceholder.typicode.com/comments`)
@@ -20,7 +20,7 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, loading, navigation })
   }, [])
 
   useEffect(() => {
-    getPost(1, []);
+    getPost(1);
     getAllUser();
   }, [comments])
 
@@ -29,7 +29,7 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, loading, navigation })
   }
 
   useEffect(() => {
-    getPost(currentPage, posts);
+    getPost(currentPage);
   }, [currentPage]);
 
   const renderItem = ({ item }) => {

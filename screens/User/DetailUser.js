@@ -1,43 +1,44 @@
 import axios from 'axios';
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
+  ScrollView,
   Text,
   FlatList,
-  StyleSheet,
   Image,
   TouchableOpacity,
-  Modal,
-  Pressable,
   ActivityIndicator,
 } from 'react-native';
 
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import ReactNativeZoomableView from '@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-import {LineDevider} from '../../components';
-import {COLORS, FONTS, SIZES} from '../../constants';
+import { LineDivider } from '../../components';
+import { COLORS, FONTS, SIZES } from '../../constants';
 
-const DetailUser = ({route}) => {
-  const {currentUser} = route.params;
+const DetailUser = ({ route, navigation }) => {
+  const { currentUser } = route.params;
   const [albums, setAlbums] = useState([]);
   const [photos, setPhotos] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState({});
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(1);
+  const [lastId, setLastId] = useState();
+  const [currentId, setCurrentId] = useState();
 
-  const slideInfo = [
-    {...currentUser.address, id: '1'},
-    {...currentUser.company, id: '2'},
-  ];
+  const onViewRef = useRef(({ viewableItems }) => {
+    setCurrentIndex(viewableItems[0].index);
+    setCurrentId(viewableItems[0].item.id);
+  });
 
-  const fetchPhotos = ids => {
-    let apiUrl = `https://jsonplaceholder.typicode.com/photos?albumId=${ids}`;
+  const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
+
+  const fetchPhotos = id => {
+    setLoading(true);
+    let apiUrl = `https://jsonplaceholder.typicode.com/photos?albumId=${id}`;
     axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
-          setPhotos(response.data);
+          let newPhotos = [...photos, ...response.data]
+          setPhotos(newPhotos);
           setLoading(false);
         } else {
           console.log(response.data);
@@ -48,115 +49,83 @@ const DetailUser = ({route}) => {
       });
   };
 
+  if (lastId < currentId) {
+    setLastId(currentId);
+  }
+
+  useEffect(() => {
+    fetchPhotos(lastId);
+  }, [lastId]);
+
   useEffect(() => {
     let apiUrl = `https://jsonplaceholder.typicode.com/albums?userId=${currentUser.id}`;
     axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
           setAlbums(response.data);
-          return response.data;
+          setLastId(response.data[0].id);
+          fetchPhotos(response.data[0].id);
         } else {
           console.log(response.data);
         }
-      })
-      .then(res => {
-        let ids = res
-          .map(item => {
-            return item.id;
-          })
-          .join('&albumId=');
-
-        fetchPhotos(ids);
       })
       .catch(error => {
         console.log(error);
       });
   }, [currentUser.id]);
 
-  const renderUserInfoSlide = ({item}) => {
-    return item.id === '1' ? (
-      <View
-        style={[
-          styles.card,
-          {marginRight: SIZES.radius, marginLeft: SIZES.padding},
-        ]}>
-        <MaterialCommunityIcons
-          name="map-marker-radius"
-          size={40}
-          color={COLORS.darkBlue}
-        />
-        <Text style={styles.font}>
-          {item.street}, {item.suite}, {item.city}, {item.zipcode}
-        </Text>
-      </View>
-    ) : (
-      <View style={[styles.card, {marginRight: SIZES.padding}]}>
-        <MaterialCommunityIcons
-          name="office-building"
-          size={40}
-          color={COLORS.darkBlue}
-        />
-        <Text style={styles.font}>
-          {item.name}
-          {'\n'}
-          {item.catchPhrase}
-          {'\n'}
-          {item.bs}
-        </Text>
-      </View>
-    );
-  };
-
-  function renderAddressAndCompany() {
+  const UserInfoSection = ({ label, data }) => {
     return (
-      <FlatList
-        data={slideInfo}
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        pagingEnabled={true}
-        keyExtractor={item => item.id}
-        renderItem={renderUserInfoSlide}
-      />
-    );
+      <View style={{ marginHorizontal: SIZES.padding, marginBottom: SIZES.radius }}>
+        <Text style={{ color: COLORS.gray, ...FONTS.body5 }}>{label}</Text>
+        <Text style={{ color: COLORS.darkGray, ...FONTS.h4 }}>{data}</Text>
+        <LineDivider lineStyle={{ backgroundColor: COLORS.gray4 }} />
+      </View>
+    )
   }
 
   function renderUserInfo() {
     return (
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: SIZES.padding,
-        }}>
-        <Ionicons name="person-circle" size={120} color={COLORS.primary} />
-        <Text style={[styles.font, {fontSize: 24, lineHeight: 24}]}>
-          {currentUser.name}
-        </Text>
-        <Text
-          style={[
-            styles.font,
-            {fontSize: 18, lineHeight: 18, marginTop: SIZES.base},
-          ]}>
-          {currentUser.email}
-        </Text>
-
-        {/* Address & Company Slider */}
-        {renderAddressAndCompany()}
-        <LineDevider lineStyles={{marginTop: 20}} />
+      <View>
+        <View style={{ alignItems: 'center', justifyContent: 'center', marginVertical: SIZES.padding }}>
+          {/* Photo */}
+          <Icon
+            name="person-circle"
+            size={80}
+            color={COLORS.primary}
+          />
+          {/* Name */}
+          <Text
+            style={{ color: COLORS.darkGray, ...FONTS.h3, fontSize: 18 }}
+          >
+            {currentUser.name}
+          </Text>
+        </View>
+        {/* Email */}
+        <UserInfoSection label="Email" data={currentUser.email} />
+        {/* Address */}
+        <UserInfoSection
+          label="Address"
+          data={`${currentUser.address.street}, ${currentUser.address.suite}, ${currentUser.address.city}, ${currentUser.address.zipcode}`} />
+        {/* Company */}
+        <UserInfoSection label="Company" data={currentUser.company.name} />
       </View>
-    );
+    )
   }
 
-  const renderPhotos = ({item}) => {
+  const renderPhotos = ({ item }) => {
     return (
       <TouchableOpacity
-        style={{borderWidth: 1, borderColor: COLORS.white}}
+        style={{ borderWidth: 1, borderColor: COLORS.white }}
         onPress={() => {
-          setModalVisible(!modalVisible);
-          setSelectedPhoto(item);
+          navigation.navigate("DetailPhoto", { item });
         }}>
+        {/* Thumbnail */}
         <Image
-          style={styles.imageThumbnail}
+          style={{
+            width: SIZES.width / 3,
+            height: SIZES.width / 3,
+          }}
           source={{
             uri: item.thumbnailUrl,
           }}
@@ -164,153 +133,80 @@ const DetailUser = ({route}) => {
       </TouchableOpacity>
     );
   };
-  const renderAlbums = ({item}) => {
+
+  const renderAlbumsTitle = ({ item }) => {
     let filteredPhotos = photos.filter(a => a.albumId === item.id);
     return (
-      <View>
-        <Text
-          style={[
-            styles.font,
-            {
-              fontSize: 18,
-              lineHeight: 18,
-              textAlign: 'left',
-              marginVertical: 20,
-              marginHorizontal: SIZES.radius,
-            },
-          ]}>
-          {item.title}
-        </Text>
-        {loading ? (
-          <ActivityIndicator size="large" color={COLORS.darkGray} />
-        ) : (
-          <FlatList
-            data={filteredPhotos}
-            keyExtractor={item => item.id}
-            numColumns={3}
-            horizontal={false}
-            renderItem={renderPhotos}
-          />
-        )}
-      </View>
-    );
-  };
-  function renderUserInfoAndListAlbums() {
-    return (
-      <FlatList
-        data={albums}
-        keyExtractor={item => item.id}
-        ListHeaderComponent={renderUserInfo}
-        renderItem={renderAlbums}
-      />
-    );
+      <View style={{ width: SIZES.width }}>
+        <View style={{
+          paddingHorizontal: SIZES.padding,
+          height: 65,
+          justifyContent: 'center',
+          marginTop: SIZES.base,
+          backgroundColor: COLORS.lightGray
+        }}>
+          {/* Album Title */}
+          <Text
+            style={{ color: COLORS.darkGray, ...FONTS.h4, fontSize: 16 }}
+          >{item.title}</Text>
+        </View>
+        {
+          loading ? (
+            <ActivityIndicator size="large" color={COLORS.darkGray} style={{ marginTop: SIZES.padding }} />
+          ) : (
+            <FlatList
+              data={filteredPhotos}
+              keyExtractor={item => `Photos-${item.id}`}
+              numColumns={3}
+              horizontal={false}
+              renderItem={renderPhotos}
+            />
+          )
+        }
+      </View >
+    )
   }
 
-  function renderModalImageView() {
+  function renderListAlbums() {
     return (
-      <Modal
-        animationType="slide"
-        transparent
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-          setSelectedPhoto({});
-        }}>
-        <View style={styles.centeredView}>
-          <Pressable
-            style={{
-              width: 40,
-              height: 40,
-              position: 'absolute',
-              right: 10,
-              top: 10,
-              zIndex: 100,
-            }}
-            onPress={() => {
-              setModalVisible(!modalVisible);
-              setSelectedPhoto({});
-            }}>
-            <MaterialCommunityIcons
-              name="close-circle"
-              size={40}
-              color={COLORS.white}
-            />
-          </Pressable>
-          <ReactNativeZoomableView
-            zoomEnabled={true}
-            maxZoom={1.5}
-            minZoom={1}
-            zoomStep={0.5}
-            initialZoom={1}
-            bindToBorders={true}
-            captureEvent={true}
-            doubleTapZoomToCenter={true}
-            style={styles.zoomableView}>
-            <Image style={styles.imageLarge} source={{uri: selectedPhoto.url}} />
-          </ReactNativeZoomableView>
-          <Text style={styles.imageTitle}>{selectedPhoto.title}</Text>
-        </View>
-      </Modal>
-    );
+      <View>
+        {/* Album Indicator */}
+        <Text
+          style={{
+            paddingHorizontal: SIZES.padding,
+            color: COLORS.darkGray, ...FONTS.h2,
+            fontSize: SIZES.h3,
+            marginTop: SIZES.padding
+          }}>Albums ({currentIndex + 1}/{albums.length})</Text>
+
+        <FlatList
+          data={albums}
+          keyExtractor={item => `AlbumsTitle-${item.id}`}
+          renderItem={renderAlbumsTitle}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          onViewableItemsChanged={onViewRef.current}
+          viewabilityConfig={viewConfigRef.current}
+          pagingEnabled
+        />
+      </View>
+    )
   }
 
   return (
-    <View
+    <ScrollView
       style={{
+        flex: 1,
         backgroundColor: COLORS.white,
       }}>
-      {/* User Info & List of Albums */}
-      {renderUserInfoAndListAlbums()}
+      {/* User Info */}
+      {renderUserInfo()}
 
-      {/* Modal Pop Up Image View */}
-      {renderModalImageView()}
-    </View>
+      {/* Albums */}
+      {renderListAlbums()}
+    </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: SIZES.padding,
-    width: SIZES.width - SIZES.padding * 2,
-    backgroundColor: COLORS.ocean,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-  },
-  font: {
-    flex: 1,
-    textAlign: 'center',
-    color: COLORS.black,
-    ...FONTS.h4,
-    lineHeight: 18,
-  },
-  imageThumbnail: {
-    width: SIZES.width / 3,
-    height: SIZES.width / 3,
-  },
-  centeredView: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: SIZES.width,
-    height: SIZES.height,
-    backgroundColor: COLORS.black,
-  },
-  imageLarge: {
-    width: SIZES.width,
-    aspectRatio: 1,
-    resizeMode: 'contain',
-  },
-  imageTitle: {
-    color: COLORS.white,
-    ...FONTS.h2,
-    position: 'absolute',
-    bottom: 40,
-  },
-  zoomableView: {
-    position: 'absolute',
-  },
-});
 
 export default DetailUser;
