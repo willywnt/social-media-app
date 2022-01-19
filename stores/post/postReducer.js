@@ -9,11 +9,6 @@ const initialState = {
 
 const postReducer = (state = initialState, action) => {
   switch (action.type) {
-    case postActions.GET_ALL_USER_BEGIN:
-      return {
-        ...state,
-        loading: true,
-      };
     case postActions.GET_ALL_USER_SUCCESS:
       return {
         ...state,
@@ -38,6 +33,11 @@ const postReducer = (state = initialState, action) => {
       return {
         ...state,
         error: action.payload.error,
+      };
+    case postActions.GET_ALL_POST_LOADED:
+      return {
+        ...state,
+        loading: false,
       };
     default:
       return state;

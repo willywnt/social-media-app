@@ -1,16 +1,17 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { connect } from 'react-redux';
 import { getAllUser, getAllPost } from '../../stores/post/postActions';
-import { useFocusEffect } from '@react-navigation/native';
 
 import { COLORS, FONTS, SIZES, icons } from '../../constants';
 import { UserSection, LineDivider, IconLabelButton } from '../../components';
 import axios from 'axios';
 
-const ListPost = ({ getAllPost, getAllUser, posts, users, navigation }) => {
+const ListPost = ({ getAllPost, getAllUser, posts, users, loading, navigation }) => {
   const [comments, setComments] = useState([]);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  
   useEffect(() => {
     axios
       .get(`https://jsonplaceholder.typicode.com/comments`)
@@ -18,13 +19,18 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, navigation }) => {
       .catch(error => console.log(error));
   }, [])
 
-  useFocusEffect(
-    useCallback(() => {
-      getAllPost(comments);
-      getAllUser();
-    }, [comments]),
-  );
+  useEffect(() => {
+    getPost(1, []);
+    getAllUser();
+  }, [comments])
 
+  const getPost = (page, currentPosts = posts || []) => {
+    getAllPost(comments, page, currentPosts);
+  }
+
+  useEffect(() => {
+    getPost(currentPage, posts);
+  }, [currentPage]);
 
   const renderItem = ({ item }) => {
     const currentUser = users.find(user => user.id === item.userId);
@@ -106,13 +112,35 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, navigation }) => {
     );
   };
 
+  const renderLoader = () => {
+    return (
+      loading ? <View
+        style={{ width: SIZES.width, height: 80, justifyContent: 'center', alignItems: 'center' }}
+      >
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View> : null
+    )
+
+  }
+
+  const handleLoadMore = () => {
+    if (!hasScrolled) { return null; }
+    setCurrentPage(currentPage + 1);
+  }
+
+
   function renderPostSection() {
     return (
       <FlatList
         data={posts}
-        keyExtractor={item => item.id}
+        keyExtractor={item => `Post-${item.id}`}
         renderItem={renderItem}
         ItemSeparatorComponent={() => <LineDivider lineStyle={{ height: 8 }} />}
+        ListFooterComponent={renderLoader}
+        onEndReached={handleLoadMore}
+        // onEndReachedThreshold={0}
+        onScroll={() => setHasScrolled(true)}
+
       />
     );
   }
@@ -132,12 +160,13 @@ const mapStateToProps = (state) => {
   return {
     posts: state.postReducer.posts,
     users: state.postReducer.users,
+    loading: state.postReducer.loading,
   };
 }
 const mapDispatchToProps = (dispatch) => {
   return {
-    getAllPost: (comments) => {
-      return dispatch(getAllPost(comments));
+    getAllPost: (comments, page, currentPosts) => {
+      return dispatch(getAllPost(comments, page, currentPosts));
     },
     getAllUser: () => {
       return dispatch(getAllUser());
