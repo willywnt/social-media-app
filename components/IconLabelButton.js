@@ -25,7 +25,7 @@ const IconLabelButton = ({ label, icon, onPress, containerStyle, labelStyle, ico
       <Text
         style={{
           color: COLORS.black,
-          ...FONTS.h4,
+          ...FONTS.h5,
           ...labelStyle
         }}
       >

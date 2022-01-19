@@ -25,28 +25,33 @@ const DetailPost = ({ route }) => {
             style={{
               color: COLORS.primary,
               ...FONTS.h3,
-              fontSize: 20,
-              marginTop: 5,
-              fontWeight: 'bold',
+              fontSize: 18,
             }}>
             {post.title}
           </Text>
           <Text
             style={{
               color: COLORS.black,
-              ...FONTS.h4,
-              lineHeight: 20,
-              marginVertical: SIZES.base,
+              ...FONTS.body4,
+              marginVertical: SIZES.radius,
             }}>
             {post.body}
           </Text>
           <View style={{ flex: 1, flexDirection: 'row', marginBottom: SIZES.base }}>
             {/* Likes */}
             <View style={{ flex: 1 }}>
-              <Text>10 Likes</Text>
+              <Text
+                style={{
+                  color: COLORS.gray,
+                  ...FONTS.body4,
+                }}>10 Likes</Text>
             </View>
             {/* Count Comments */}
-            {post.comments.length != 0 && <Text>{post.comments.length} comments</Text>}
+            {post.comments.length != 0 && <Text
+              style={{
+                color: COLORS.gray,
+                ...FONTS.body4,
+              }}>{post.comments.length} {post.comments.length > 1 ? "comments" : "comment"}</Text>}
 
           </View>
           <LineDivider lineStyle={{ height: 1 }} />
@@ -97,7 +102,6 @@ const DetailPost = ({ route }) => {
                 style={{
                   color: COLORS.darkBlue,
                   ...FONTS.h3,
-                  fontWeight: 'bold',
                   flex: 1,
                 }}>
                 {item.name}
@@ -105,8 +109,7 @@ const DetailPost = ({ route }) => {
               <Text
                 style={{
                   color: COLORS.black,
-                  ...FONTS.h4,
-                  lineHeight: 20,
+                  ...FONTS.body4,
                   marginTop: SIZES.base
                 }}>
                 {item.body}
@@ -118,24 +121,21 @@ const DetailPost = ({ route }) => {
               <TouchableOpacity>
                 <Text style={{
                   color: COLORS.black,
-                  ...FONTS.h4,
-                  lineHeight: 20,
+                  ...FONTS.body4,
                 }}>
                   Like
                 </Text>
               </TouchableOpacity>
               <Text style={{
                 color: COLORS.black,
-                ...FONTS.h4,
-                lineHeight: 20,
+                ...FONTS.body4,
               }}>
                 {'  |  '}
               </Text>
               <TouchableOpacity>
                 <Text style={{
                   color: COLORS.black,
-                  ...FONTS.h4,
-                  lineHeight: 20,
+                  ...FONTS.body4,
                 }}>
                   Replay
                 </Text>
@@ -175,7 +175,7 @@ const DetailPost = ({ route }) => {
             flexDirection: 'row',
             backgroundColor: COLORS.white,
             paddingHorizontal: SIZES.padding,
-            paddingVertical: SIZES.radius,
+            paddingVertical: SIZES.base,
           }}
         >
           {/* Text Input */}
@@ -187,7 +187,7 @@ const DetailPost = ({ route }) => {
             }}
             ref={inputRef}
             multiline
-            placeholder="Type Comment..."
+            placeholder="Type Here..."
             placeholderColor={COLORS.gray}
             onContentSizeChange={(event) => {
               const height = event.nativeEvent.contentSize.height;

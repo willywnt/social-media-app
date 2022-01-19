@@ -49,15 +49,14 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, navigation }) => {
             style={{
               color: COLORS.primary,
               ...FONTS.h3,
-              fontSize: 20,
-              fontWeight: 'bold',
+              fontSize: 18,
             }}>
             {item.title}
           </Text>
           <Text
             style={{
               color: COLORS.black,
-              ...FONTS.h3,
+              ...FONTS.body4,
               marginVertical: SIZES.radius,
             }}>
             {item.body}
@@ -66,10 +65,18 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, navigation }) => {
         <View style={{ flex: 1, flexDirection: 'row', marginBottom: SIZES.base }}>
           {/* Likes */}
           <View style={{ flex: 1 }}>
-            <Text>10 Likes</Text>
+            <Text
+              style={{
+                color: COLORS.gray,
+                ...FONTS.body4,
+              }}>10 Likes</Text>
           </View>
           {/* Count Comments */}
-          {item.comments.length != 0 && <Text>{item.comments.length} comments</Text>}
+          {item.comments.length != 0 && <Text
+            style={{
+              color: COLORS.gray,
+              ...FONTS.body4,
+            }}>{item.comments.length} {item.comments.length > 1 ? "comments" : "comment"}</Text>}
         </View>
         <LineDivider lineStyle={{ height: 1 }} />
         {/* Button Action */}

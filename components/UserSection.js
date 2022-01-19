@@ -31,7 +31,6 @@ const UserSection = ({ currentUser }) => {
             style={{
               color: COLORS.darkBlue,
               ...FONTS.h3,
-              fontWeight: 'bold',
               lineHeight: 18,
             }}>
             {currentUser?.username}
@@ -39,7 +38,7 @@ const UserSection = ({ currentUser }) => {
           <Text
             style={{
               color: COLORS.gray,
-              ...FONTS.h4,
+              ...FONTS.body4,
               lineHeight: 18,
             }}>
             {currentUser?.company.name}
