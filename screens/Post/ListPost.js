@@ -8,7 +8,7 @@ import { UserSection, LineDivider, IconLabelButton } from '../../components';
 import axios from 'axios';
 
 const ListPost = ({ getAllPost, getAllUser, posts, users, loading, navigation }) => {
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState();
   const [currentPage, setCurrentPage] = useState(1);
   const [hasScrolled, setHasScrolled] = useState(false);
 
@@ -29,7 +29,9 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, loading, navigation })
   }
 
   useEffect(() => {
-    getPost(currentPage);
+    if (currentPage !== 1) {
+      getPost(currentPage);
+    }
   }, [currentPage]);
 
   const renderItem = ({ item }) => {
