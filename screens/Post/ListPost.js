@@ -1,37 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { connect } from 'react-redux';
-import { getAllUser, getAllPost } from '../../stores/post/postActions';
+import { getPosts } from '../../stores/post/postActions';
 
 import { COLORS, FONTS, SIZES, icons } from '../../constants';
 import { UserSection, LineDivider, IconLabelButton } from '../../components';
-import axios from 'axios';
 
-const ListPost = ({ getAllPost, getAllUser, posts, users, loading, navigation }) => {
-  const [comments, setComments] = useState();
+const ListPost = ({ getPosts, posts, users, loading, navigation }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(`https://jsonplaceholder.typicode.com/comments`)
-      .then(response => setComments(response.data))
-      .catch(error => console.log(error));
-  }, [])
-
-  useEffect(() => {
-    getPost(1);
-    getAllUser();
-  }, [comments])
-
-  const getPost = (page, currentPosts = posts || []) => {
-    getAllPost(comments, page, currentPosts);
-  }
-
-  useEffect(() => {
-    if (currentPage !== 1) {
-      getPost(currentPage);
-    }
+    getPosts(currentPage);
   }, [currentPage]);
 
   const renderItem = ({ item }) => {
@@ -140,9 +120,7 @@ const ListPost = ({ getAllPost, getAllUser, posts, users, loading, navigation })
         ItemSeparatorComponent={() => <LineDivider lineStyle={{ height: 8 }} />}
         ListFooterComponent={renderLoader}
         onEndReached={handleLoadMore}
-        // onEndReachedThreshold={0}
         onScroll={() => setHasScrolled(true)}
-
       />
     );
   }
@@ -167,11 +145,8 @@ const mapStateToProps = (state) => {
 }
 const mapDispatchToProps = (dispatch) => {
   return {
-    getAllPost: (comments, page, currentPosts) => {
-      return dispatch(getAllPost(comments, page, currentPosts));
-    },
-    getAllUser: () => {
-      return dispatch(getAllUser());
+    getPosts: (page) => {
+      return dispatch(getPosts(page));
     },
   };
 }

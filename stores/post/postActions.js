@@ -1,84 +1,113 @@
 import axios from 'axios';
 
-// Get All User
-export const GET_ALL_USER_SUCCESS = 'GET_ALL_USER_SUCCESS';
-export const GET_ALL_USER_FAILURE = 'GET_ALL_USER_FAILURE';
+// Get List Post, Comment Post, User Post
+export const GET_USERS_SUCCESS = 'GET_USERS_SUCCESS';
+export const GET_POSTS_BEGIN = 'GET_POSTS_BEGIN';
+export const GET_POSTS_SUCCESS = 'GET_POSTS_SUCCESS';
+export const GET_POSTS_FAILURE = 'GET_POSTS_FAILURE';
+export const GET_POSTS_LOADED = 'GET_POSTS_LOADED';
 
-export const getAllUserSuccess = users => ({
-  type: GET_ALL_USER_SUCCESS,
+export const getUsersSuccess = users => ({
+  type: GET_USERS_SUCCESS,
   payload: { users },
 });
-export const getAllUserFailure = error => ({
-  type: GET_ALL_USER_FAILURE,
-  payload: { error },
-});
 
-export function getAllUser() {
-  return dispatch => {
-
-    let apiUrl = 'https://jsonplaceholder.typicode.com/users';
-    return axios.get(apiUrl)
-      .then(response => {
-        if (response.status === 200) {
-          dispatch(getAllUserSuccess(response.data));
-        } else {
-          dispatch(getAllUserFailure(response.data));
-        }
-      })
-      .catch(error => {
-        dispatch(getAllUserFailure(error));
-      });
-  };
-}
-
-// Get List Post from all user
-export const GET_ALL_POST_BEGIN = 'GET_ALL_POST_BEGIN';
-export const GET_ALL_POST_SUCCESS = 'GET_ALL_POST_SUCCESS';
-export const GET_ALL_POST_FAILURE = 'GET_ALL_POST_FAILURE';
-export const GET_ALL_POST_LOADED = 'GET_ALL_POST_LOADED';
-
-export const getAllPostBegin = () => ({
-  type: GET_ALL_POST_BEGIN,
+export const getPostsBegin = () => ({
+  type: GET_POSTS_BEGIN,
 })
-export const getAllPostSuccess = posts => ({
-  type: GET_ALL_POST_SUCCESS,
+export const getPostsSuccess = posts => ({
+  type: GET_POSTS_SUCCESS,
   payload: { posts },
 });
-export const getAllPostFailure = error => ({
-  type: GET_ALL_POST_FAILURE,
+export const getPostsFailure = error => ({
+  type: GET_POSTS_FAILURE,
   payload: { error },
 });
-export const getAllPostLoaded = () => ({
-  type: GET_ALL_POST_LOADED,
+export const getPostsLoaded = () => ({
+  type: GET_POSTS_LOADED,
 });
 
-export function getAllPost(comments, page, currentPosts) {
-  return dispatch => {
-    dispatch(getAllPostBegin());
+const getComments = async (ids) => {
+  let apiUrl = `https://jsonplaceholder.typicode.com/comments?postId=${ids}`;
+  return await axios.get(apiUrl).then(res => res.data);
+}
+const getUsers = async (ids) => {
+  let apiUrl = `https://jsonplaceholder.typicode.com/users?id=${ids}`;
+  return await axios.get(apiUrl).then(res => res.data);
+}
 
-    let apiUrl = `https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${page}`;
+export function getPosts(page) {
+  return (dispatch, getState) => {
+    dispatch(getPostsBegin());
+    const { postReducer } = getState();
+    const currentPosts = postReducer.posts;
+    const currentUsers = postReducer.users;
+
+    let apiUrl = `https://jsonplaceholder.typicode.com/posts?_limit=5&_page=${page}`;
     return axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
           return response.data;
         } else {
-          dispatch(getAllPostFailure(response.data));
+          dispatch(getPostsFailure(response.data));
         }
       })
-      .then(posts => {
-        let postsWithComments = Array.from(Object.keys(posts).fill(0));
+      .then(async (posts) => {
+        let newPosts = Array.from(Object.keys(posts).fill(0));
+
+        // fetch data comment by postIds
+        let postIds = posts
+          .map(item => {
+            return item.id;
+          })
+          .join('&postId=');
+        const postComments = await getComments(postIds);
+
+        
+        let userId = [];
         posts.forEach((post, index) => {
-          const postComments = comments.filter(comment => comment.postId == post.id)
-          postsWithComments[index] = { ...post, comments: postComments }
-        })
+          // filter postComments if match post id then append to newPosts
+          const comments = postComments.filter(comment => comment.postId === post.id);
+          newPosts[index] = { ...post, comments };
+          
+          // temporarily save userId but no duplicates in fetching data post
+          let i = userId.findIndex(x => x.id === post.userId);
+          if (i <= -1) {
+            userId.push({ id: post.userId });
+          }
+        });
+        // insert newPosts into currentPosts
+        newPosts = [...currentPosts, ...newPosts];
 
-        postsWithComments = [...currentPosts, ...postsWithComments];
+        if (!currentUsers.length) {
+          // first data fetching, no need check if user id already existing
+          let userIds = userId
+            .map(item => {
+              return item.id;
+            })
+            .join('&id=');
+          let newUsers = await getUsers(userIds);
+          dispatch(getUsersSuccess(newUsers));
+        } else {
+          // check if userIds no duplicate by currentUsers id
+          let userIdFilted = userId.filter(item => !currentUsers.find(users => users.id === item.id));
+          let userIds = userIdFilted
+            .map(item => {
+              return item.id;
+            })
+            .join('&id=');
+          let newUsers = await getUsers(userIds);
+          // insert newUsers into currentUsers
+          newUsers = [...currentUsers, ...newUsers];
+          dispatch(getUsersSuccess(newUsers));
+        }
 
-        dispatch(getAllPostSuccess(postsWithComments));
-        dispatch(getAllPostLoaded());
+        // after data users was fetched
+        dispatch(getPostsSuccess(newPosts));
+        dispatch(getPostsLoaded());
       })
       .catch(error => {
-        dispatch(getAllPostFailure(error));
+        dispatch(getPostsFailure(error));
       });
 
   };

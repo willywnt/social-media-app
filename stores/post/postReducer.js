@@ -9,32 +9,27 @@ const initialState = {
 
 const postReducer = (state = initialState, action) => {
   switch (action.type) {
-    case postActions.GET_ALL_USER_SUCCESS:
+    case postActions.GET_USERS_SUCCESS:
       return {
         ...state,
         users: action.payload.users,
       };
-    case postActions.GET_ALL_USER_FAILURE:
-      return {
-        ...state,
-        error: action.payload.error,
-      };
-    case postActions.GET_ALL_POST_BEGIN:
+    case postActions.GET_POSTS_BEGIN:
       return {
         ...state,
         loading: true,
       };
-    case postActions.GET_ALL_POST_SUCCESS:
+    case postActions.GET_POSTS_SUCCESS:
       return {
         ...state,
         posts: action.payload.posts,
       };
-    case postActions.GET_ALL_POST_FAILURE:
+    case postActions.GET_POSTS_FAILURE:
       return {
         ...state,
         error: action.payload.error,
       };
-    case postActions.GET_ALL_POST_LOADED:
+    case postActions.GET_POSTS_LOADED:
       return {
         ...state,
         loading: false,
