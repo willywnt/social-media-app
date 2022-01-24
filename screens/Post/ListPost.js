@@ -6,7 +6,7 @@ import { getPosts } from '../../stores/post/postActions';
 import { COLORS, FONTS, SIZES, icons } from '../../constants';
 import { UserSection, LineDivider, IconLabelButton } from '../../components';
 
-const ListPost = ({ getPosts, posts, users, loading, navigation }) => {
+const ListPost = ({ getPosts, posts, users, loading, hasMoreToLoad, navigation }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasScrolled, setHasScrolled] = useState(false);
 
@@ -105,10 +105,9 @@ const ListPost = ({ getPosts, posts, users, loading, navigation }) => {
   }
 
   const handleLoadMore = () => {
-    if (!hasScrolled) { return null; }
+    if (!hasScrolled && !hasMoreToLoad) { return null; }
     setCurrentPage(currentPage + 1);
   }
-
 
   function renderPostSection() {
     return (
@@ -123,6 +122,7 @@ const ListPost = ({ getPosts, posts, users, loading, navigation }) => {
       />
     );
   }
+  
   return (
     <View
       style={{
@@ -140,6 +140,7 @@ const mapStateToProps = (state) => {
     posts: state.postReducer.posts,
     users: state.postReducer.users,
     loading: state.postReducer.loading,
+    hasMoreToLoad: state.postReducer.hasMoreToLoad,
   };
 }
 const mapDispatchToProps = (dispatch) => {

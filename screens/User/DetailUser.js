@@ -67,7 +67,7 @@ const DetailUser = ({ route, navigation }) => {
   }
 
   useEffect(() => {
-    if(lastId){
+    if (lastId) {
       fetchPhotos(lastId);
     }
   }, [lastId]);
@@ -193,7 +193,7 @@ const DetailUser = ({ route, navigation }) => {
           numColumns={3}
           horizontal={false}
           renderItem={renderPhotos}
-          contentContainerStyle={{ paddingBottom: 380 }}
+          contentContainerStyle={{ paddingBottom: SIZES.height > 800 ? 405 : 380 }}
           ListFooterComponent={renderLoader}
           onEndReached={handleLoadMore}
           nestedScrollEnabled
@@ -234,7 +234,11 @@ const DetailUser = ({ route, navigation }) => {
       style={{
         backgroundColor: COLORS.white,
       }}
-      contentContainerStyle={{ height: SIZES.height + height - StatusBar.currentHeight }}
+      contentContainerStyle={{
+        height: SIZES.height > 800 ?
+          SIZES.height + height :
+          SIZES.height + height - StatusBar.currentHeight
+      }}
       nestedScrollEnabled
       showsVerticalScrollIndicator={false}
     >
@@ -246,6 +250,5 @@ const DetailUser = ({ route, navigation }) => {
     </ScrollView>
   );
 };
-
 
 export default DetailUser;

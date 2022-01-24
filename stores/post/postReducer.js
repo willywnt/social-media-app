@@ -3,6 +3,7 @@ import * as postActions from './postActions';
 const initialState = {
   users: [],
   posts: [],
+  hasMoreToLoad: true,
   error: null,
   loading: false,
 };
@@ -33,6 +34,11 @@ const postReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
+      };
+    case postActions.GET_POSTS_MORE_LOAD:
+      return {
+        ...state,
+        hasMoreToLoad: action.payload.hasMoreToLoad,
       };
     default:
       return state;
