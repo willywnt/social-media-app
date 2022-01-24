@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -23,6 +24,12 @@ const DetailUser = ({ route, navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(1);
   const [lastId, setLastId] = useState();
   const [currentId, setCurrentId] = useState();
+  const [height, setHeight] = useState(null);
+
+  const onLayout = useCallback(event => {
+    const { height } = event.nativeEvent.layout;
+    setHeight(height);
+  }, []);
 
   const onViewRef = useRef(({ viewableItems }) => {
     setCurrentIndex(viewableItems[0].index);
@@ -31,14 +38,20 @@ const DetailUser = ({ route, navigation }) => {
 
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
-  const fetchPhotos = id => {
+  const fetchPhotos = (id, page = 1, limit = 15) => {
     setLoading(true);
-    let apiUrl = `https://jsonplaceholder.typicode.com/photos?albumId=${id}`;
+    let apiUrl = `https://jsonplaceholder.typicode.com/photos?_limit=${limit}&albumId=${id}&_page=${page}`;
     axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
-          let newPhotos = [...photos, ...response.data]
-          setPhotos(newPhotos);
+          if (response.data.length > 0) {
+            setPhotos(prevState => [
+              ...prevState,
+              ...response.data
+            ])
+          } else {
+            albums[currentIndex].hasMoreToLoad = false;
+          }
           setLoading(false);
         } else {
           console.log(response.data);
@@ -54,7 +67,9 @@ const DetailUser = ({ route, navigation }) => {
   }
 
   useEffect(() => {
-    fetchPhotos(lastId);
+    if(lastId){
+      fetchPhotos(lastId);
+    }
   }, [lastId]);
 
   useEffect(() => {
@@ -62,9 +77,9 @@ const DetailUser = ({ route, navigation }) => {
     axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
-          setAlbums(response.data);
+          let res = response.data.map(album => ({ ...album, page: 1, hasMoreToLoad: true }));
+          setAlbums(res);
           setLastId(response.data[0].id);
-          fetchPhotos(response.data[0].id);
         } else {
           console.log(response.data);
         }
@@ -86,7 +101,9 @@ const DetailUser = ({ route, navigation }) => {
 
   function renderUserInfo() {
     return (
-      <View>
+      <View
+        onLayout={onLayout}
+      >
         <View style={{ alignItems: 'center', justifyContent: 'center', marginVertical: SIZES.padding }}>
           {/* Photo */}
           <Icon
@@ -124,7 +141,7 @@ const DetailUser = ({ route, navigation }) => {
         <Image
           style={{
             width: SIZES.width / 3,
-            height: SIZES.width / 3,
+            aspectRatio: 1,
           }}
           source={{
             uri: item.thumbnailUrl,
@@ -133,6 +150,26 @@ const DetailUser = ({ route, navigation }) => {
       </TouchableOpacity>
     );
   };
+
+  const renderLoader = () => {
+    return (
+      loading ? <View
+        style={{ width: SIZES.width, height: 80, justifyContent: 'center', alignItems: 'center' }}
+      >
+        <ActivityIndicator size="large" color={COLORS.darkGray} />
+      </View> : null
+    )
+  }
+
+  const handleLoadMore = () => {
+    if (!albums[currentIndex].hasMoreToLoad) {
+      return null;
+    } else {
+      albums[currentIndex].page += 1;
+      page = albums[currentIndex].page;
+      fetchPhotos(currentId, page);
+    }
+  }
 
   const renderAlbumsTitle = ({ item }) => {
     let filteredPhotos = photos.filter(a => a.albumId === item.id);
@@ -150,20 +187,19 @@ const DetailUser = ({ route, navigation }) => {
             style={{ color: COLORS.darkGray, ...FONTS.h4, fontSize: 16 }}
           >{item.title}</Text>
         </View>
-        {
-          loading ? (
-            <ActivityIndicator size="large" color={COLORS.darkGray} style={{ marginTop: SIZES.padding }} />
-          ) : (
-            <FlatList
-              data={filteredPhotos}
-              keyExtractor={item => `Photos-${item.id}`}
-              numColumns={3}
-              horizontal={false}
-              renderItem={renderPhotos}
-            />
-          )
-        }
-      </View >
+        <FlatList
+          data={filteredPhotos}
+          keyExtractor={item => `Photos-${item.id}`}
+          numColumns={3}
+          horizontal={false}
+          renderItem={renderPhotos}
+          contentContainerStyle={{ paddingBottom: 380 }}
+          ListFooterComponent={renderLoader}
+          onEndReached={handleLoadMore}
+          nestedScrollEnabled
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
     )
   }
 
@@ -176,7 +212,7 @@ const DetailUser = ({ route, navigation }) => {
             paddingHorizontal: SIZES.padding,
             color: COLORS.darkGray, ...FONTS.h2,
             fontSize: SIZES.h3,
-            marginTop: SIZES.padding
+            marginTop: SIZES.radius
           }}>Albums ({currentIndex + 1}/{albums.length})</Text>
 
         <FlatList
@@ -196,9 +232,12 @@ const DetailUser = ({ route, navigation }) => {
   return (
     <ScrollView
       style={{
-        flex: 1,
         backgroundColor: COLORS.white,
-      }}>
+      }}
+      contentContainerStyle={{ height: SIZES.height + height - StatusBar.currentHeight }}
+      nestedScrollEnabled
+      showsVerticalScrollIndicator={false}
+    >
       {/* User Info */}
       {renderUserInfo()}
 

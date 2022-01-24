@@ -102,7 +102,6 @@ const ListPost = ({ getPosts, posts, users, loading, navigation }) => {
         <ActivityIndicator size="large" color={COLORS.primary} />
       </View> : null
     )
-
   }
 
   const handleLoadMore = () => {

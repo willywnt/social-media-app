@@ -43,7 +43,7 @@ export function getPosts(page) {
     const currentPosts = postReducer.posts;
     const currentUsers = postReducer.users;
 
-    let apiUrl = `https://jsonplaceholder.typicode.com/posts?_limit=5&_page=${page}`;
+    let apiUrl = `https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${page}`;
     return axios.get(apiUrl)
       .then(response => {
         if (response.status === 200) {
