@@ -105,7 +105,7 @@ const ListPost = ({ getPosts, posts, users, loading, hasMoreToLoad, navigation }
   }
 
   const handleLoadMore = () => {
-    if (!hasScrolled && !hasMoreToLoad) { return null; }
+    if (!hasScrolled && !hasMoreToLoad || loading) { return null; }
     setCurrentPage(currentPage + 1);
   }
 
@@ -122,7 +122,7 @@ const ListPost = ({ getPosts, posts, users, loading, hasMoreToLoad, navigation }
       />
     );
   }
-  
+
   return (
     <View
       style={{

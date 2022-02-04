@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   StatusBar
 } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
 
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -23,12 +24,14 @@ const DetailUser = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(1);
   const [lastId, setLastId] = useState();
+  const [counter, setCounter] = useState(0);
   const [currentId, setCurrentId] = useState();
-  const [height, setHeight] = useState(null);
+  const [contentHeight, setContentHeight] = useState(null);
+  const headerHeight = useHeaderHeight();
 
   const onLayout = useCallback(event => {
     const { height } = event.nativeEvent.layout;
-    setHeight(height);
+    setContentHeight(height);
   }, []);
 
   const onViewRef = useRef(({ viewableItems }) => {
@@ -38,10 +41,10 @@ const DetailUser = ({ route, navigation }) => {
 
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
-  const fetchPhotos = (id, page = 1, limit = 15) => {
+  const fetchPhotos = (source, id, page = 1, limit = 15) => {
     setLoading(true);
     let apiUrl = `https://jsonplaceholder.typicode.com/photos?_limit=${limit}&albumId=${id}&_page=${page}`;
-    axios.get(apiUrl)
+    axios.get(apiUrl, { cancelToken: source.token })
       .then(response => {
         if (response.status === 200) {
           if (response.data.length > 0) {
@@ -58,7 +61,12 @@ const DetailUser = ({ route, navigation }) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        if (axios.isCancel(error)) {
+          console.log('successfully aborted fetch photos');
+        } else {
+          // handle error
+          console.log(error);
+        }
       });
   };
 
@@ -66,15 +74,35 @@ const DetailUser = ({ route, navigation }) => {
     setLastId(currentId);
   }
 
+  // handle initial fetching photos
   useEffect(() => {
+    const source = axios.CancelToken.source();
     if (lastId) {
-      fetchPhotos(lastId);
+      fetchPhotos(source, lastId);
+    }
+
+    return () => {
+      source.cancel();
     }
   }, [lastId]);
 
+  // handle load more fetching photos
   useEffect(() => {
+    const source = axios.CancelToken.source();
+    if (albums.length) {
+      let page = albums[currentIndex].page;
+      fetchPhotos(source, currentId, page);
+    }
+
+    return () => {
+      source.cancel();
+    }
+  }, [counter])
+
+  useEffect(() => {
+    const source = axios.CancelToken.source();
     let apiUrl = `https://jsonplaceholder.typicode.com/albums?userId=${currentUser.id}`;
-    axios.get(apiUrl)
+    axios.get(apiUrl, { cancelToken: source.token })
       .then(response => {
         if (response.status === 200) {
           let res = response.data.map(album => ({ ...album, page: 1, hasMoreToLoad: true }));
@@ -85,8 +113,18 @@ const DetailUser = ({ route, navigation }) => {
         }
       })
       .catch(error => {
-        console.log(error);
+        if (axios.isCancel(error)) {
+          console.log('successfully aborted fetch albums');
+        } else {
+          // handle error
+          console.log(error);
+        }
       });
+
+
+    return () => {
+      source.cancel();
+    }
   }, [currentUser.id]);
 
   const UserInfoSection = ({ label, data }) => {
@@ -126,6 +164,15 @@ const DetailUser = ({ route, navigation }) => {
           data={`${currentUser.address.street}, ${currentUser.address.suite}, ${currentUser.address.city}, ${currentUser.address.zipcode}`} />
         {/* Company */}
         <UserInfoSection label="Company" data={currentUser.company.name} />
+
+        {/* Album Indicator */}
+        <Text
+          style={{
+            paddingHorizontal: SIZES.padding,
+            color: COLORS.darkGray, ...FONTS.h2,
+            fontSize: SIZES.h3,
+            marginVertical: SIZES.radius
+          }}>Albums ({currentIndex + 1}/{albums.length})</Text>
       </View>
     )
   }
@@ -162,13 +209,13 @@ const DetailUser = ({ route, navigation }) => {
   }
 
   const handleLoadMore = () => {
-    if (!albums[currentIndex].hasMoreToLoad) {
+    if (!albums[currentIndex].hasMoreToLoad || loading) {
       return null;
-    } else {
-      albums[currentIndex].page += 1;
-      page = albums[currentIndex].page;
-      fetchPhotos(currentId, page);
     }
+    albums[currentIndex].page += 1;
+
+    // trigger load more
+    setCounter(counter + 1);
   }
 
   const renderAlbumsTitle = ({ item }) => {
@@ -179,7 +226,6 @@ const DetailUser = ({ route, navigation }) => {
           paddingHorizontal: SIZES.padding,
           height: 65,
           justifyContent: 'center',
-          marginTop: SIZES.base,
           backgroundColor: COLORS.lightGray
         }}>
           {/* Album Title */}
@@ -193,7 +239,6 @@ const DetailUser = ({ route, navigation }) => {
           numColumns={3}
           horizontal={false}
           renderItem={renderPhotos}
-          contentContainerStyle={{ paddingBottom: SIZES.height > 800 ? 405 : 380 }}
           ListFooterComponent={renderLoader}
           onEndReached={handleLoadMore}
           nestedScrollEnabled
@@ -205,27 +250,16 @@ const DetailUser = ({ route, navigation }) => {
 
   function renderListAlbums() {
     return (
-      <View>
-        {/* Album Indicator */}
-        <Text
-          style={{
-            paddingHorizontal: SIZES.padding,
-            color: COLORS.darkGray, ...FONTS.h2,
-            fontSize: SIZES.h3,
-            marginTop: SIZES.radius
-          }}>Albums ({currentIndex + 1}/{albums.length})</Text>
-
-        <FlatList
-          data={albums}
-          keyExtractor={item => `AlbumsTitle-${item.id}`}
-          renderItem={renderAlbumsTitle}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          onViewableItemsChanged={onViewRef.current}
-          viewabilityConfig={viewConfigRef.current}
-          pagingEnabled
-        />
-      </View>
+      <FlatList
+        data={albums}
+        keyExtractor={item => `AlbumsTitle-${item.id}`}
+        renderItem={renderAlbumsTitle}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewRef.current}
+        viewabilityConfig={viewConfigRef.current}
+        pagingEnabled
+      />
     )
   }
 
@@ -236,8 +270,8 @@ const DetailUser = ({ route, navigation }) => {
       }}
       contentContainerStyle={{
         height: SIZES.height > 800 ?
-          SIZES.height + height :
-          SIZES.height + height - StatusBar.currentHeight
+          SIZES.height + contentHeight - headerHeight :
+          SIZES.height + contentHeight - headerHeight - StatusBar.currentHeight
       }}
       nestedScrollEnabled
       showsVerticalScrollIndicator={false}

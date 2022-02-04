@@ -54,6 +54,8 @@ export function getPosts(page) {
     const hasMoreToLoad = postReducer.hasMoreToLoad;
     if(hasMoreToLoad) {
       dispatch(getPostsBegin());
+    }else{
+      return 0;
     }
 
     let apiUrl = `https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${page}`;
