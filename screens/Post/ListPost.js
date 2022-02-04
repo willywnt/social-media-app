@@ -14,7 +14,7 @@ const ListPost = ({ getPosts, posts, users, loading, hasMoreToLoad, navigation }
     getPosts(currentPage);
   }, [currentPage]);
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
     const currentUser = users.find(user => user.id === item.userId);
     return (
       <View
@@ -23,7 +23,7 @@ const ListPost = ({ getPosts, posts, users, loading, hasMoreToLoad, navigation }
           paddingBottom: SIZES.base,
         }}>
         {/* User Section */}
-        <UserSection currentUser={currentUser} />
+        <UserSection currentUser={currentUser} sharedElementPrefix={`ListPost-${index}`} />
 
         {/* Post Content */}
         <TouchableOpacity

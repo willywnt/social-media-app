@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { COLORS, FONTS } from '../constants';
 import { useNavigation } from '@react-navigation/native';
+import { SharedElement } from 'react-navigation-shared-element';
 
-const UserSection = ({ currentUser }) => {
+const UserSection = ({ sharedElementPrefix, currentUser }) => {
   const navigation = useNavigation();
-  
+
   return (
     <View
       style={{
@@ -18,14 +18,16 @@ const UserSection = ({ currentUser }) => {
       <TouchableOpacity
         style={{ flexDirection: 'row', alignItems: 'center' }}
         onPress={() =>
-          navigation.navigate('DetailUser', { currentUser })
+          navigation.navigate('DetailUser', { currentUser, sharedElementPrefix })
         }>
-        <Icon
-          name="person-circle"
-          size={45}
-          color={COLORS.primary}
-          style={{ paddingRight: 10 }}
-        />
+        <SharedElement
+          id={`${sharedElementPrefix}-Picture-User-${currentUser?.id}`}
+        >
+          <Image
+            source={{ uri: currentUser.picture.thumbnail }}
+            style={{ width: 45, height: 45, marginRight: 10, borderRadius: 45 / 2 }}
+          />
+        </SharedElement>
         <View>
           <Text
             style={{

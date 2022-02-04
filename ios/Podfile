@@ -14,6 +14,10 @@ target 'SocialMediaApp' do
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
+  pod 'RNSharedElement', :path => '../node_modules/react-native-shared-element'
+
+  pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
+
   target 'SocialMediaAppTests' do
     inherit! :complete
     # Pods for testing

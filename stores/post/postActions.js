@@ -46,15 +46,20 @@ const getUsers = async (ids) => {
   return await axios.get(apiUrl).then(res => res.data);
 }
 
+const getPictureUsers = async (userIdLength) => {
+  let apiUrl = `https://randomuser.me/api/?results=${userIdLength}&inc=picture&noinfo`;
+  return await axios.get(apiUrl).then(res => res.data.results);
+}
+
 export function getPosts(page) {
   return (dispatch, getState) => {
     const { postReducer } = getState();
     const currentPosts = postReducer.posts;
     const currentUsers = postReducer.users;
     const hasMoreToLoad = postReducer.hasMoreToLoad;
-    if(hasMoreToLoad) {
+    if (hasMoreToLoad) {
       dispatch(getPostsBegin());
-    }else{
+    } else {
       return 0;
     }
 
@@ -105,7 +110,10 @@ export function getPosts(page) {
             })
             .join('&id=');
           let newUsers = await getUsers(userIds);
-          dispatch(getUsersSuccess(newUsers));
+          let userPicture = await getPictureUsers(userId.length);
+          let newUsersWithPicture = newUsers.map((item, index) => ({ ...item, picture: userPicture[index].picture }));
+
+          dispatch(getUsersSuccess(newUsersWithPicture));
         } else {
           // check if userIds no duplicate by currentUsers id
           let userIdFilted = userId.filter(item => !currentUsers.find(users => users.id === item.id));
@@ -115,9 +123,12 @@ export function getPosts(page) {
             })
             .join('&id=');
           let newUsers = await getUsers(userIds);
-          // insert newUsers into currentUsers
-          newUsers = [...currentUsers, ...newUsers];
-          dispatch(getUsersSuccess(newUsers));
+          let userPicture = await getPictureUsers(userIdFilted.length);
+          let newUsersWithPicture = newUsers.map((item, index) => ({ ...item, picture: userPicture[index].picture }));
+          // insert newUsersWithPicture into currentUsers
+          newUsersWithPicture = [...currentUsers, ...newUsersWithPicture];
+
+          dispatch(getUsersSuccess(newUsersWithPicture));
         }
 
         // after data users was fetched

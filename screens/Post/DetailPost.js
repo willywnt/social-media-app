@@ -19,7 +19,7 @@ const DetailPost = ({ route }) => {
             paddingBottom: SIZES.base,
           }}>
           {/* User Section */}
-          <UserSection currentUser={currentUser} />
+          <UserSection currentUser={currentUser} sharedElementPrefix="DetailPost" />
           {/* Post Content */}
           <Text
             style={{

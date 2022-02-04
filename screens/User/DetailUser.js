@@ -10,15 +10,13 @@ import {
   ActivityIndicator,
   StatusBar
 } from 'react-native';
-import { useHeaderHeight } from '@react-navigation/elements';
-
-import Icon from 'react-native-vector-icons/Ionicons';
+import { SharedElement } from 'react-navigation-shared-element';
 
 import { LineDivider } from '../../components';
 import { COLORS, FONTS, SIZES } from '../../constants';
 
 const DetailUser = ({ route, navigation }) => {
-  const { currentUser } = route.params;
+  const { currentUser, sharedElementPrefix } = route.params;
   const [albums, setAlbums] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +25,6 @@ const DetailUser = ({ route, navigation }) => {
   const [counter, setCounter] = useState(0);
   const [currentId, setCurrentId] = useState();
   const [contentHeight, setContentHeight] = useState(null);
-  const headerHeight = useHeaderHeight();
 
   const onLayout = useCallback(event => {
     const { height } = event.nativeEvent.layout;
@@ -144,11 +141,14 @@ const DetailUser = ({ route, navigation }) => {
       >
         <View style={{ alignItems: 'center', justifyContent: 'center', marginVertical: SIZES.padding }}>
           {/* Photo */}
-          <Icon
-            name="person-circle"
-            size={80}
-            color={COLORS.primary}
-          />
+          <SharedElement
+            id={`${sharedElementPrefix}-Picture-User-${currentUser?.id}`}
+          >
+            <Image
+              source={{ uri: currentUser.picture.large }}
+              style={{ width: 130, height: 130, marginBottom: SIZES.radius, borderRadius: 130 / 2 }}
+            />
+          </SharedElement>
           {/* Name */}
           <Text
             style={{ color: COLORS.darkGray, ...FONTS.h3, fontSize: 18 }}
@@ -270,8 +270,8 @@ const DetailUser = ({ route, navigation }) => {
       }}
       contentContainerStyle={{
         height: SIZES.height > 800 ?
-          SIZES.height + contentHeight - headerHeight :
-          SIZES.height + contentHeight - headerHeight - StatusBar.currentHeight
+          SIZES.height + contentHeight - 60 :
+          SIZES.height + contentHeight - 60 - StatusBar.currentHeight
       }}
       nestedScrollEnabled
       showsVerticalScrollIndicator={false}
@@ -284,5 +284,12 @@ const DetailUser = ({ route, navigation }) => {
     </ScrollView>
   );
 };
+
+DetailUser.sharedElements = (route, otherRoute, showing) => {
+  const { currentUser, sharedElementPrefix } = route.params;
+  return [
+    { id: `${sharedElementPrefix}-Picture-User-${currentUser?.id}` }
+  ]
+}
 
 export default DetailUser;

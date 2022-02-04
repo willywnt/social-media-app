@@ -1,5 +1,6 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { LogBox } from 'react-native';
+import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 import { NavigationContainer } from '@react-navigation/native';
 import { ListPost, DetailPost, DetailUser, DetailPhoto } from './screens';
 import { createStore, applyMiddleware } from 'redux';
@@ -7,21 +8,18 @@ import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import rootReducer from './stores/rootReducer';
 
-// import Tabs from './navigation/tabs';
-
-const Stack = createNativeStackNavigator();
+const Stack = createSharedElementStackNavigator();
 const store = createStore(rootReducer, applyMiddleware(thunk));
+
+LogBox.ignoreLogs([
+  "[react-native-gesture-handler] Seems like you\'re using an old API with gesture components, check out new Gestures system!",
+]);
 
 const App = () => {
   return (
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName={'ListPost'}>
-          {/* <Stack.Screen
-            name="MainLayout"
-            component={Tabs}
-            options={{headerShown: false}}
-          /> */}
           <Stack.Screen
             name="ListPost"
             component={ListPost}
@@ -32,6 +30,11 @@ const App = () => {
             component={DetailPost}
             options={() => ({
               title: 'Comments',
+              headerStyle: {
+                borderBottomWidth: .5,
+                borderBottomColor: "#D5D4D4",
+                height: 60
+              },
             })}
           />
           <Stack.Screen
@@ -39,6 +42,12 @@ const App = () => {
             component={DetailUser}
             options={({ route }) => ({
               title: route.params.currentUser.username,
+              headerStyle: {
+                borderBottomWidth: .5,
+                borderBottomColor: "#D5D4D4",
+                height: 60
+              },
+              headerTintColor: '#1C335E',
             })}
           />
           <Stack.Screen
