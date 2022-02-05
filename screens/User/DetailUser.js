@@ -8,7 +8,6 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar
 } from 'react-native';
 import { SharedElement } from 'react-navigation-shared-element';
 
@@ -182,18 +181,22 @@ const DetailUser = ({ route, navigation }) => {
       <TouchableOpacity
         style={{ borderWidth: 1, borderColor: COLORS.white }}
         onPress={() => {
-          navigation.navigate("DetailPhoto", { item });
+          navigation.navigate("DetailPhoto", { item, sharedElementPrefix: 'DetailPhoto' });
         }}>
         {/* Thumbnail */}
-        <Image
-          style={{
-            width: SIZES.width / 3,
-            aspectRatio: 1,
-          }}
-          source={{
-            uri: item.thumbnailUrl,
-          }}
-        />
+        <SharedElement
+          id={`DetailPhoto-${item?.id}`}
+        >
+          <Image
+            style={{
+              width: SIZES.width / 3,
+              aspectRatio: 1,
+            }}
+            source={{
+              uri: item.thumbnailUrl,
+            }}
+          />
+        </SharedElement>
       </TouchableOpacity>
     );
   };
@@ -254,6 +257,7 @@ const DetailUser = ({ route, navigation }) => {
         data={albums}
         keyExtractor={item => `AlbumsTitle-${item.id}`}
         renderItem={renderAlbumsTitle}
+        scrollEnabled={loading ? false : true}
         horizontal
         showsHorizontalScrollIndicator={false}
         onViewableItemsChanged={onViewRef.current}
@@ -269,9 +273,7 @@ const DetailUser = ({ route, navigation }) => {
         backgroundColor: COLORS.white,
       }}
       contentContainerStyle={{
-        height: SIZES.height > 800 ?
-          SIZES.height + contentHeight - 60 :
-          SIZES.height + contentHeight - 60 - StatusBar.currentHeight
+        height: SIZES.height + contentHeight - 60
       }}
       nestedScrollEnabled
       showsVerticalScrollIndicator={false}
@@ -286,10 +288,12 @@ const DetailUser = ({ route, navigation }) => {
 };
 
 DetailUser.sharedElements = (route, otherRoute, showing) => {
-  const { currentUser, sharedElementPrefix } = route.params;
-  return [
-    { id: `${sharedElementPrefix}-Picture-User-${currentUser?.id}` }
-  ]
+  if (otherRoute.name === 'ListPost' || otherRoute.name === 'DetailPost') {
+    const { currentUser, sharedElementPrefix } = route.params;
+    return [
+      { id: `${sharedElementPrefix}-Picture-User-${currentUser?.id}` }
+    ]
+  }
 }
 
 export default DetailUser;

@@ -1,12 +1,30 @@
-import React from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
-import ReactNativeZoomableView from '@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView';
+import React, { useRef } from 'react';
+import { Animated, View, Text, Image, Pressable } from 'react-native';
+import ReactNativeZoomableView from '@openspacelabs/react-native-zoomable-view/src/ReactNativeZoomableView';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { SharedElement } from 'react-navigation-shared-element';
 
 import { COLORS, FONTS, SIZES } from '../../constants';
 
 const DetailPhoto = ({ route, navigation }) => {
-  const { item } = route.params;
+  const { item, sharedElementPrefix } = route.params;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  const hideTitleClose = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true
+    }).start();
+  }
+
+  const showTitleClose = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true
+    }).start();
+  }
 
   return (
     <View style={{
@@ -17,7 +35,7 @@ const DetailPhoto = ({ route, navigation }) => {
       backgroundColor: COLORS.black,
     }}>
       {/* Close Button */}
-      <Pressable
+      <Animated.View
         style={{
           width: 40,
           height: 40,
@@ -25,40 +43,51 @@ const DetailPhoto = ({ route, navigation }) => {
           right: 10,
           top: 10,
           zIndex: 100,
+          opacity: fadeAnim,
         }}
-        onPress={() => {
-          navigation.goBack();
-        }}>
-        <MaterialCommunityIcons
-          name="close-circle"
-          size={40}
-          color={COLORS.white}
-        />
-      </Pressable>
+      >
+        <Pressable
+          onPress={() => {
+            navigation.goBack();
+          }}>
+          <MaterialCommunityIcons
+            name="close-circle"
+            size={40}
+            color={COLORS.white}
+          />
+        </Pressable>
+      </Animated.View>
       {/* Full Size Photo */}
       <ReactNativeZoomableView
         zoomEnabled={true}
-        maxZoom={1.5}
+        maxZoom={3}
         minZoom={1}
-        zoomStep={0.5}
+        zoomStep={1}
         initialZoom={1}
         bindToBorders={true}
         captureEvent={true}
         doubleTapZoomToCenter={true}
-        style={{ position: 'absolute' }}>
-        <Image style={{
-          width: SIZES.width,
-          aspectRatio: 1,
-          resizeMode: 'contain',
-        }} source={{ uri: item.url }} />
+        onPanResponderGrant={hideTitleClose}
+        onPanResponderEnd={showTitleClose}
+      >
+        <SharedElement
+          id={`${sharedElementPrefix}-${item?.id}`}
+        >
+          <Image style={{
+            width: SIZES.width,
+            aspectRatio: 1,
+            resizeMode: 'contain',
+          }} source={{ uri: item.url }} />
+        </SharedElement>
       </ReactNativeZoomableView>
       {/* Photo Title */}
-      <View style={{
+      <Animated.View style={{
         position: 'absolute',
         bottom: 0,
         width: "100%",
+        opacity: fadeAnim,
         paddingHorizontal: SIZES.radius,
-        paddingVertical:40,
+        paddingVertical: 40,
         backgroundColor: COLORS.transparentBlack1
       }}>
         <Text style={{
@@ -66,9 +95,16 @@ const DetailPhoto = ({ route, navigation }) => {
           ...FONTS.h3,
           textAlign: 'center'
         }}>{item.title}</Text>
-      </View>
+      </Animated.View>
     </View>
   );
 };
+
+DetailPhoto.sharedElements = (route, otherRoute, showing) => {
+  const { item, sharedElementPrefix } = route.params;
+  return [
+    { id: `${sharedElementPrefix}-${item?.id}` }
+  ]
+}
 
 export default DetailPhoto;

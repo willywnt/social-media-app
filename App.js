@@ -19,7 +19,10 @@ const App = () => {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName={'ListPost'}>
+        <Stack.Navigator
+          initialRouteName={'ListPost'}
+          detachInactiveScreens={false}
+        >
           <Stack.Screen
             name="ListPost"
             component={ListPost}
