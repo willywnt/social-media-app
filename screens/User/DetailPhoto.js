@@ -30,8 +30,7 @@ const DetailPhoto = ({ route, navigation }) => {
     <View style={{
       justifyContent: 'center',
       alignItems: 'center',
-      width: SIZES.width,
-      height: SIZES.height,
+      flex: 1,
       backgroundColor: COLORS.black,
     }}>
       {/* Close Button */}
@@ -59,14 +58,9 @@ const DetailPhoto = ({ route, navigation }) => {
       </Animated.View>
       {/* Full Size Photo */}
       <ReactNativeZoomableView
-        zoomEnabled={true}
         maxZoom={3}
         minZoom={1}
         zoomStep={1}
-        initialZoom={1}
-        bindToBorders={true}
-        captureEvent={true}
-        doubleTapZoomToCenter={true}
         onPanResponderGrant={hideTitleClose}
         onPanResponderEnd={showTitleClose}
       >

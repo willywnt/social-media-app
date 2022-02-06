@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar
 } from 'react-native';
 import { SharedElement } from 'react-navigation-shared-element';
 
@@ -273,7 +274,9 @@ const DetailUser = ({ route, navigation }) => {
         backgroundColor: COLORS.white,
       }}
       contentContainerStyle={{
-        height: SIZES.height + contentHeight - 60
+        height: SIZES.height > 800 ? 
+        SIZES.height + contentHeight - 60 :
+        SIZES.height + contentHeight - 60 - StatusBar.currentHeight
       }}
       nestedScrollEnabled
       showsVerticalScrollIndicator={false}
